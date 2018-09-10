@@ -9,8 +9,8 @@ function init(){
     //Allow to draw in canvas in 2D
     var ctx = canvas.getContext("2d");
 
-    canvas.width = 800;
-    canvas.height = 500;
+    canvas.width = 1200;
+    canvas.height = 675;
 
     var game = {
         status: 'Starting'
@@ -19,8 +19,8 @@ function init(){
     //CREATES THE OBJECT SHIP
     var ship = {
         x: 100,
-        y: canvas.height - 100,
-        width: 50,
+        y: canvas.height - 75,
+        width: 30,
         height: 50,
         counter: 0
     }
@@ -45,6 +45,12 @@ function init(){
         subtitle: ''
     }
     
+
+    
+    
+
+    
+    
     
     
     /*****************************************
@@ -53,12 +59,36 @@ function init(){
     
     //FUNCTION TO BE CALLED WHEN ALL HAS BEEN LOADED    
     function loadMedia(){
+        
+        //IMAGES
         background = new Image(); 
-        background.src = "space.png";
+        background.src = "bg.jpg";
+        
+        spaceShip = new Image();
+        spaceShip.src = "ship.png";
+        
+        enemyImg = new Image();
+        enemyImg.src = "enemy.png";
+        
+        //AUDIOS
+        var simpleShoot = new Audio("Audios/simpleShoot.wav");
+        var gameOver = new Audio("Audios/gameOver.wav");
+        var winSound = new Audio("Audios/win.mp3");
+        simpleShoot.volume = 0.1;
+        
         //When the background has been loaded, the frameLoop is going to called every x time
         background.onload = function(){ 
              var interval = window.setInterval(frameLoop, 1000/55);
         }
+    }
+    
+    /*****************************************
+                DRAW FUNCTIONS
+    ****************************************/
+    
+    //DRAW BACKGROUND
+    function drawBackground(){
+        ctx.drawImage(background,0,0);
     }
     
     //DRAW ENEMIES
@@ -67,27 +97,17 @@ function init(){
             
             //If the enemy is alive, draw it
             if(enemies[i].status == 1){
-            
-                ctx.save(); //Save the context properties
-                ctx.fillStyle = 'red';
-                ctx.fillRect(enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
-                ctx.restore();
+                
+                ctx.drawImage(enemyImg, enemies[i].x, enemies[i].y);
+                
             }
             
         }
     }
     
-    //DRAW BACKGROUND
-    function drawBackground(){
-        ctx.drawImage(background,0,0);
-    }
-    
-    //DRAW THE SHIP
+    //DRAW THE SPACE SHIP
     function drawSpaceShip(){
-        ctx.save(); //Save the context properties
-        ctx.fillStyle = "white";
-        ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
-        ctx.restore();
+        ctx.drawImage(spaceShip, ship.x, ship.y);
     }
     
     //MOVEMENT OF SHIP
@@ -282,6 +302,7 @@ function init(){
             width: 5,
             height: 10
         });
+        simpleShoot.play();
         
     }
     
@@ -319,7 +340,7 @@ function init(){
             
             if(collision(enemiesShoots[i],ship)){
                 ship.status = 'Hit';
-               
+               gameOver.play();
             }
             
         }
@@ -347,6 +368,8 @@ function init(){
 
             ctx.font = '14pt Arial';
             ctx.fillText(textResponse.subtitle,190,250);
+            
+            
         }
         
      
