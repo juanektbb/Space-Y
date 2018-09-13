@@ -21,8 +21,10 @@ function init(){
         x: 100,
         y: canvas.height - 75,
         width: 30,
-        height: 50,
-        counter: 0
+        height: 47,
+        counter: 0,
+        status: 'Alive',
+        bullets: 20
     }
     
     //OBJECT TO KEEP THE KEYS TO BE PRESSED
@@ -35,6 +37,7 @@ function init(){
     //ARRAY WITH ENEMIES 
     var enemies = [];
     var enemiesShoots = [];
+    var specialBullets = [];
     
     //VAR TO KEEP THE BACKGROUND
     var background;
@@ -45,12 +48,16 @@ function init(){
         subtitle: ''
     }
     
+    //AUDIOS
+    var simpleShoot = new Audio("Audios/simpleShoot.wav");
+    var gameOver = new Audio("Audios/gameOver.wav");
+    var winSound = new Audio("Audios/win.mp3");
+    winSound.volume = 0.1;
+    var enemySound = new Audio("Audios/enemy.mp3");
+    simpleShoot.volume = 0.1;
+    
+    var lifeSound = new Audio("Audios/life.wav")
 
-    
-    
-
-    
-    
     
     
     /*****************************************
@@ -67,20 +74,24 @@ function init(){
         spaceShip = new Image();
         spaceShip.src = "ship.png";
         
+        spaceShipDead = new Image();
+        spaceShipDead.src = "ship_dead.png";
+        
         enemyImg = new Image();
         enemyImg.src = "enemy.png";
         
-        //AUDIOS
-        var simpleShoot = new Audio("Audios/simpleShoot.wav");
-        var gameOver = new Audio("Audios/gameOver.wav");
-        var winSound = new Audio("Audios/win.mp3");
-        simpleShoot.volume = 0.1;
+        heartImg = new Image();
+        heartImg.src = "heart.png"
+        
+
         
         //When the background has been loaded, the frameLoop is going to called every x time
         background.onload = function(){ 
              var interval = window.setInterval(frameLoop, 1000/55);
         }
     }
+    
+    
     
     /*****************************************
                 DRAW FUNCTIONS
@@ -105,13 +116,107 @@ function init(){
         }
     }
     
-    //DRAW THE SPACE SHIP
-    function drawSpaceShip(){
-        ctx.drawImage(spaceShip, ship.x, ship.y);
+    //DRAW THE ENEMIES BULLETS
+    function drawEnemiesShoots(){    
+        ctx.save();
+        ctx.fillStyle = 'yellow'; 
+        for(var i in enemiesShoots){ 
+            ctx.fillRect(enemiesShoots[i].x, enemiesShoots[i].y, enemiesShoots[i].width, enemiesShoots[i].height);      
+        }
+        ctx.restore();
     }
     
-    //MOVEMENT OF SHIP
-    function moveShip(){
+    //DRAW THE SPACE SHIP
+    function drawSpaceShip(){
+        
+        if(ship.status == 'Dead' || ship.status == 'Hit'){
+            ctx.drawImage(spaceShipDead, ship.x, ship.y);
+        }else{
+            ctx.drawImage(spaceShip, ship.x, ship.y);
+        }
+        
+        
+    }
+    
+    //DRAW BULLETS
+    function drawShoots(){
+        ctx.save();
+        ctx.fillStyle = 'white';
+        for(var i in shoots){
+            ctx.fillRect(shoots[i].x, shoots[i].y, shoots[i].width, shoots[i].height);
+        }
+        ctx.restore();
+    }
+    
+    //DRAW SPECIAL BULLETS
+    function drawSpecial(){
+        
+        ctx.save();
+        ctx.fillStyle = 'Red';
+
+
+        for(var i in specialBullets){
+            ctx.drawImage(heartImg,specialBullets[i].x,specialBullets[i].y);
+        }
+
+        ctx.restore();
+        
+    }
+    
+    //DRAW TEXT 
+    function drawText(){
+        
+        //DRAWING ENEMIS NUMBER
+        ctx.save();
+        ctx.fillStyle = "White";
+        ctx.font = "Bold 12pt Arial";
+        ctx.fillText("Grums: " + enemies.length, 10, 20);
+        ctx.fillText("Missils: " + ship.bullets, 10, 40);
+        ctx.restore();
+        
+        
+        //IF the counter hasn't changed, leave the functions
+        if(textResponse.counter == -1){
+            return false;
+        }
+        
+        //FOR THE EFFECTS
+        if(textResponse.counter >= 0){
+            textResponse.counter++;
+            
+        }
+        
+        //ALPHA IS GOING TO KEEP THE SPEED FROM 0 TO 1 TO APPLY IN globalAlpha UNDERNEATH
+        var alpha = textResponse.counter/50.0;
+        
+        //DELETE ELEMENTS SO IT CAN NOT BE PLAYED AGAIN
+        if(alpha > 0){
+            for(var i in enemies){
+                delete enemies[i];
+            }
+        }
+        
+        //ACTUAL DRAWING TEXT
+        ctx.save();
+        ctx.fillStyle = 'white';
+        ctx.globalAlpha = alpha; //Alpha changes shown on top
+        
+        ctx.font = 'Bold 40pt Arial';
+        ctx.fillText(textResponse.title,140,200);
+        ctx.font = '14pt Arial';
+        ctx.fillText(textResponse.subtitle,190,250);        
+        ctx.restore();
+        
+    }
+    
+    
+    
+    /*****************************************
+                KEYS FUNCTIONS
+    ****************************************/
+    
+    //PRESSED KEYS
+    function pressedKeys(){
         
         //IF THE KEY 65 IS TRUE (PRESSED) LEFT
         if(keys[65]){
@@ -145,47 +250,47 @@ function init(){
             keyBoolShoot = false; //The boolean becomes false, so it can be used again in the previous IF statement
         }
         
-        if(ship.status == 'Hit'){
+    }
+    
+    //SEND OUR BULLETS
+    function fire(){
+        
+        if(ship.bullets > 0){
+        
+            shoots.push({
+                x: ship.x + (ship.width / 2) - 2.5,
+                y: ship.y - 10,
+                width: 5,
+                height: 10
+            });
             
-            ship.counter++
-            if(ship.counter >= 20){
-                ship.counter = 0;
-                ship.status = 'Dead';
-                game.status = 'Lost';
-                textResponse.title = 'Game Over';
-                textResponse.subtitle = 'Press R to continue';
-                textResponse.counter = 0;
-                console.log("hey");
-            }
-        }
+            ship.bullets--;
+            simpleShoot.play(); //Sound of shooting
+            
         
+        }
     }
     
-    //DRAW THE ENEMIES BULLETS
-    function drawEnemiesShoots(){
-        
-        for(var i in enemiesShoots){    
-            ctx.save();
-            ctx.fillStyle = 'yellow'; ctx.fillRect(enemiesShoots[i].x,enemiesShoots[i].y,enemiesShoots[i].width,enemiesShoots[i].height);
-            ctx.restore();
-        }
-        
-    }
     
-    //MOVE THE ENEMIES BULLETS
-    function moveEnemiesShoots(){
+    
+    /*****************************************
+                AUTO FUNCTIONS
+    ****************************************/
         
-        for(var i in enemiesShoots){
-            var singleShoot = enemiesShoots[i];
-            //Increase variable to make movement
-            enemiesShoots[i].y += 3;
+    //MOVE OUR SHOOTS
+    function moveShoots(){
+        
+        //Actual movement
+        for(var i in shoots){
+            var shoot = shoots[i];
+            shoots[i].y -= 10;
         }
         
-        /* FILTER CREATES AN ARRAY IN WHICH CHECKS A CONDITION IN THE RETURN OF THE FUNCTION TO REMOVE
-           THE ELEMENT IF MEETS THE CONDITION */
-        enemiesShoots = enemiesShoots.filter(function(singleShoot){
-            return singleShoot.y < canvas.height;
+        /* FILTER CREATES AN ARRAY IN WHICH CHECKS A CONDITION IN THE RETURN OF THE FUNCTION TO REMOVE THE ELEMENT IF MEETS THE CONDITION */
+        shoots = shoots.filter(function(shoot){
+            return shoot.y > 0;
         });
+        
     }
     
     //CREATES ENEMIES, MOVE THEM AND ADD SHOOTS
@@ -194,8 +299,8 @@ function init(){
         //PUSH AND ENEMY - CHECK BELOW TO KNOW IT PUSHES A BULLET NOT SO OFTEN
         function addEnemyShoot(enemy){
             return {
-                x: enemy.x,
-                y: enemy.y,
+                x: enemy.x + (enemy.width / 2) + 2.5,
+                y: enemy.y + enemy.height,
                 width: 5,
                 height: 10,
                 counter: 0
@@ -208,7 +313,7 @@ function init(){
                 enemies.push({
                     x: 10 + (i * 50), 
                     y: 10,
-                    width: 40,
+                    width: 55,
                     height: 40,
                     status: 1,
                     speed: (Math.random() * 7) + 2,
@@ -236,18 +341,21 @@ function init(){
                 }
                 
                 //Limit to the left
-                if(enemies[i].x <  -50){
+                if(enemies[i].x < -50){
                     enemies[i].speed = enemies[i].speed * -1;
                 }
                 
                 //Make the actual movement
                 enemies[i].x += enemies[i].speed;
                 
-                
-                
                 //Call the random function, if returns 4 then push a bullet the enemiesShoots
-                if(random(0,enemies.length * 10) == 4){
+                if(random(0,enemies.length * 6) == 4){
                     enemiesShoots.push(addEnemyShoot(enemies[i]));
+                }
+                
+                
+                if(random(0, 30000 / enemies.length ) == 1){
+                    specialBullets.push(addSpecialShoot(enemies[i]));
                 }
                 
             }
@@ -261,12 +369,150 @@ function init(){
                 return false;
             }
         });
-        
-        
-
-        
                 
     }
+    
+    //MOVE THE ENEMIES BULLETS
+    function moveEnemiesShoots(){
+        
+        for(var i in enemiesShoots){
+            var singleShoot = enemiesShoots[i];
+            //Increase variable to make movement
+            enemiesShoots[i].y += 3;
+        }
+        
+        /* FILTER CREATES AN ARRAY IN WHICH CHECKS A CONDITION IN THE RETURN OF THE FUNCTION TO REMOVE
+           THE ELEMENT IF MEETS THE CONDITION */
+        enemiesShoots = enemiesShoots.filter(function(singleShoot){
+            return singleShoot.y < canvas.height;
+        });
+    }
+    
+    function addSpecialShoot(enemy){
+        
+        return {
+            x: enemy.x + (enemy.width / 2) - 10,
+            y: enemy.y + enemy.height,
+            width: 20,
+            height: 20,
+            status: 1
+            
+        }
+        
+    }
+    
+    function moveSpecialShoot(){
+        
+        for(var i in specialBullets){
+            
+            specialBullets[i].y += 3; 
+            
+        }
+        
+        specialBullets = specialBullets.filter(function(a){
+            return a.y < canvas.height
+        });
+        
+    }
+
+    
+    
+    /*****************************************
+              RECURSIVE FUNCTIONS
+    ****************************************/
+    
+    //CHECK ALL COLLISIONS 
+    function checkCollision(){
+        
+        //Send the every shoot and every enemy to the collision algorithm and make the status 0 if touched
+        for(var i in shoots){
+            for(var j in enemies){
+                if(collision(shoots[i],enemies[j])){
+                    enemySound.play();
+                    enemies[j].status = 0;
+                                
+                }
+            }
+       }     
+   
+        
+        
+        for(var i in specialBullets){
+            if(collision(specialBullets[i],ship) && specialBullets[i].status == 1){
+                specialBullets[i].status = 0;
+                ship.bullets += 1;   
+                lifeSound.play();
+                
+            }
+        }
+        
+        specialBullets = specialBullets.filter(function(a){
+            return a.status != 0;
+        });
+        
+        //IF THE SHIP IS ALIVE THEN WAIT FOR THE COLLISION
+        if(ship.status == 'Alive'){
+           
+            //Check all bullets and wait for collision
+            for(var i in enemiesShoots){
+                if(collision(enemiesShoots[i],ship) && game.status == "Playing"){
+                    ship.status = 'Hit';
+                    enemiesShoots.splice(enemiesShoots[i], 1);
+                    ship.bullets = 0;
+                    gameOver.play(); //Play sound 
+                }
+            }
+            
+         }
+        
+    }
+    
+    //UPDATE STATUS
+    function updateStatusGame(){
+      
+        //IF THE USER WINS
+        if(game.status == 'Playing' && enemies.length == 0){
+            game.status = 'Win';
+            textResponse.title = 'You win';
+            textResponse.subtitle = 'Press R to restart';
+            textResponse.counter = 0;
+            winSound.play();
+        }
+        
+        //IF THE STATUS OF SHIP IS HIT (ONLY ONCE)
+        if(ship.status == 'Hit'){
+            
+            //The ship.counter delays a bit to achieve a better effect
+            ship.counter++;
+            
+            if(ship.counter >= 20){
+                ship.counter = 0;
+                ship.status = 'Dead';
+                game.status = 'Lost';
+                textResponse.title = 'Game Over';
+                textResponse.subtitle = 'Press R to continue';
+                
+                //For effect using ALPHA (Go top) in the TEXT
+                textResponse.counter = 0;
+            }
+        }
+        
+        //RESTART THE GAME PRESSING R
+        if((game.status == 'Lost' || game.status == 'Win') && keys[82]){
+            game.status = 'Starting';
+            ship.bullets = 20;
+            ship.x = 100;
+            ship.status = 'Alive';
+            textResponse.counter = -1;
+        }
+        
+    }
+    
+    
+    
+    /*****************************************
+                HELPER FUNCTIONS
+    ****************************************/
     
     //RANDOM RETURNS AN INTEGER
     function random(low,high){
@@ -276,137 +522,6 @@ function init(){
         a = Math.floor(a);
         return parseInt(low) + a;
     }
-    
-    //MOVE OUR SHOOTS
-    function moveShoots(){
-        
-        //Actual movement
-        for(var i in shoots){
-            var shoot = shoots[i];
-            shoots[i].y -= 10;
-        }
-        
-        /* FILTER CREATES AN ARRAY IN WHICH CHECKS A CONDITION IN THE RETURN OF THE FUNCTION TO REMOVE THE ELEMENT IF MEETS THE CONDITION */
-        shoots = shoots.filter(function(shoot){
-            return shoot.y > 0;
-        });
-        
-    }
-    
-    //SEND OUR BULLETS
-    function fire(){
-        
-        shoots.push({
-            x: ship.x + (ship.width / 2),
-            y: ship.y - 10,
-            width: 5,
-            height: 10
-        });
-        simpleShoot.play();
-        
-    }
-    
-    //DRAW OUR BULLETS
-    function drawShoots(){
-        ctx.save();
-        ctx.fillStyle = 'white';
-        for(var i in shoots){
-            ctx.fillRect(shoots[i].x, shoots[i].y, shoots[i].width, shoots[i].height);
-        }
-        ctx.restore();
-    }
-    
-
-    
-    
-    function checkCollision(){
-        for(var i in shoots){
-            
-            for(var j in enemies){
-             
-                if(collision(shoots[i],enemies[j])){
-                    
-                    enemies[j].status = 0;
-            
-                    
-                }
-                
-            }
-        }
-        if(ship.status == 'Hit' || ship.status == 'Dead'){
-            return;
-        }
-        for(var i in enemiesShoots){
-            
-            if(collision(enemiesShoots[i],ship)){
-                ship.status = 'Hit';
-               gameOver.play();
-            }
-            
-        }
-        
-    }
-    
-    function drawText(){
-        
-        if(textResponse.counter == -1){
-            return false;
-        }
-        var alpha = textResponse.counter/50.0;
-        
-        if(alpha > 0){
-            for(var i in enemies){
-                delete enemies[i];
-            }
-        }
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        if(game.status == 'Lost'){
-            ctx.fillStyle = 'white';
-            ctx.font = 'Bold 40pt Arial';
-            ctx.fillText(textResponse.title,140,200);
-
-            ctx.font = '14pt Arial';
-            ctx.fillText(textResponse.subtitle,190,250);
-            
-            
-        }
-        
-     
-        if(game.status == 'Win'){
-            ctx.fillStyle = 'white';
-            ctx.font = 'Bold 40pt Arial';
-            ctx.fillText(textResponse.title,140,200);
-
-            ctx.font = '14pt Arial';
-            ctx.fillText(textResponse.subtitle,190,250);
-        }
-        ctx.restore();
-        
-    }
-    
-    
-    function updateStatusGame(){
-      
-        if(game.status == 'Playing' && enemies.length == 0){
-            game.status = 'Win';
-            textResponse.title = 'You win';
-            textResponse.subtitle = 'Press R to restart';
-            textResponse.counter = 0;
-        }
-        
-        if(textResponse.counter >= 0){
-            textResponse.counter++;
-            
-        }
-        
-        if((game.status == 'Lost' || game.status == 'Win') && keys[82]){
-            game.status = 'Starting';
-            ship.status = 'Alive';
-            textResponse.counter = -1;
-        }
-    }
-    
     
     //KEYS LISTENER
     function addEventKeys(){
@@ -458,11 +573,13 @@ function init(){
         updateStatusGame()
         updateEnemies();
         moveEnemiesShoots();
+        moveSpecialShoot();
+        
         moveShoots();
         checkCollision();
         
         //Functions from the user
-        moveShip();
+        pressedKeys();
         
         //Drawing items
         drawBackground();
@@ -470,6 +587,7 @@ function init(){
         drawEnemiesShoots();
         drawSpaceShip();
         drawShoots();
+        drawSpecial();
         drawText();
         
     }
