@@ -12,8 +12,15 @@ function init(){
     canvas.width = 1200;
     canvas.height = 600;
 
+    var fixTimeRound = 8;
+    
     var game = {
-        status: 'Starting'
+        status: 'Starting',
+        round: 0,
+        allowEnemies: 0,
+        timeRound: fixTimeRound,
+        totalRounds: 1
+    
     }
     
     //CREATES THE OBJECT SHIP
@@ -24,7 +31,8 @@ function init(){
         height: 47,
         counter: 0,
         status: 'Alive',
-        bullets: 15
+        bullets: 18,
+        grumsKilled: 0
     }
     
     //OBJECT TO KEEP THE KEYS TO BE PRESSED
@@ -48,7 +56,7 @@ function init(){
         subtitle: ''
     }
     
-    //AUDIOS
+    //AUDIOS NEED TO BE DECLARED ONLY ONCE HERE
     var simpleShoot = new Audio("Audios/simpleShoot.wav");
     var gameOver = new Audio("Audios/gameOver.wav");
     var winSound = new Audio("Audios/win.mp3");
@@ -56,37 +64,32 @@ function init(){
     var enemySound = new Audio("Audios/enemy.mp3");
     simpleShoot.volume = 0.1;
     
-    var lifeSound = new Audio("Audios/life.wav")
+    var lifeSound = new Audio("Audios/life.wav");
+    
+    
+    
+    
 
     
+    var intervalRound = setInterval(roundFunc, 1000);
     
-    
-    
-    
-    var intervalRound = setInterval(thefunc, 1000);
-    var secondsRound = 15;
-    var newEnemies = 0;
-    var round = 0;
-
-    
-    
-    
-    function thefunc(){
+    function roundFunc(){
         
-        if(round < 6){
+        if(game.round < 6){
         
-            if(secondsRound > 0){
-                secondsRound--;
+            if(game.timeRound > 0){
+                game.timeRound--;
 
             }else{
-                secondsRound = 5;
-                ship.bullets += 15;
-                round++;
-                newEnemies = 1;
+                game.timeRound = fixTimeRound;
+                ship.bullets += 18;
+                game.round++;
+                game.allowEnemies = 1;
+                game.totalRounds += 1;
             }
             
         }else{
-            round = 0;
+            game.round = 0;
         }
         
     }
@@ -116,11 +119,11 @@ function init(){
         bulletImg = new Image();
         bulletImg.src = "bullet.png"
         
-
         
         //When the background has been loaded, the frameLoop is going to called every x time
         background.onload = function(){ 
-             var interval = window.setInterval(frameLoop, 1000/55);
+            var interval = window.setInterval(frameLoop, 1000/55);
+            
         }
     }
     
@@ -203,10 +206,14 @@ function init(){
         ctx.save();
         ctx.fillStyle = "White";
         ctx.font = "Bold 10pt Arial";
-        ctx.fillText("Next Round: " + secondsRound, 10, 20);
-        ctx.fillText("Grums: " + enemies.length, 10, 40);
-        ctx.fillText("Missils: " + ship.bullets, 10, 60);
+        ctx.fillText("Grums: " + enemies.length, 10, 20);
+        ctx.fillText("Missils: " + ship.bullets, 10, 40);
         
+        ctx.fillText("Kills: " + ship.grumsKilled, canvas.width - 70, canvas.height - 10);
+        ctx.fillText("Rounds: " + game.totalRounds, canvas.width - 160, canvas.height - 10);
+        
+        ctx.font = "Bold 50pt Arial";
+        ctx.fillText(game.timeRound, canvas.width - 40, 53);
         ctx.restore();
         
         
@@ -322,7 +329,6 @@ function init(){
             shoots[i].y -= 10;
         }
         
-        /* FILTER CREATES AN ARRAY IN WHICH CHECKS A CONDITION IN THE RETURN OF THE FUNCTION TO REMOVE THE ELEMENT IF MEETS THE CONDITION */
         shoots = shoots.filter(function(shoot){
             return shoot.y > 0;
         });
@@ -345,11 +351,11 @@ function init(){
         }
         
         //WHEN THE GAMES STARTS, CREATES THE ENEMIES
-        if(game.status == 'Starting' || newEnemies == 1){
+        if(game.status == 'Starting' || game.allowEnemies == 1){
             for(var i = 0; i < 10; i++){
                 enemies.push({
                     x: 10 + (i * 50), 
-                    y: 10 + round * 50,
+                    y: 10 + game.round * 50,
                     width: 55,
                     height: 40,
                     status: 1,
@@ -357,7 +363,7 @@ function init(){
                     counter: 0
                 });  
             }
-            newEnemies = 0;
+            game.allowEnemies = 0;
             game.status = 'Playing';
         }
         
@@ -419,36 +425,33 @@ function init(){
             enemiesShoots[i].y += 3;
         }
         
-        /* FILTER CREATES AN ARRAY IN WHICH CHECKS A CONDITION IN THE RETURN OF THE FUNCTION TO REMOVE
-           THE ELEMENT IF MEETS THE CONDITION */
         enemiesShoots = enemiesShoots.filter(function(singleShoot){
             return singleShoot.y < canvas.height;
         });
     }
     
+    //ADD SPECIAL SHOOT TO ARRAY
     function addSpecialShoot(enemy){
         
         return {
             x: enemy.x + (enemy.width / 2) - 10,
             y: enemy.y + enemy.height,
-            width: 20,
-            height: 20,
+            width: 25,
+            height: 25,
             status: 1
-            
         }
         
     }
     
+    //MOVE SPECIAL SHOOT
     function moveSpecialShoot(){
         
         for(var i in specialBullets){
-            
             specialBullets[i].y += 3; 
-            
         }
         
-        specialBullets = specialBullets.filter(function(a){
-            return a.y < canvas.height
+        specialBullets = specialBullets.filter(function(abc){
+            return abc.y < canvas.height
         });
         
     }
@@ -469,6 +472,7 @@ function init(){
                     enemySound.play();
                     enemies[j].status = 0;
                     shoots[i].status = 0;
+                    ship.grumsKilled += 1;
                                 
                 }
             }
@@ -483,7 +487,7 @@ function init(){
         for(var i in specialBullets){
             if(collision(specialBullets[i],ship) && game.status == "Playing" && specialBullets[i].status == 1){
                 specialBullets[i].status = 0;
-                ship.bullets += 1;   
+                ship.bullets += 3;   
                 lifeSound.play();
                 
             }
@@ -552,16 +556,17 @@ function init(){
         if((game.status == 'Lost' || game.status == 'Win') && keys[82]){
             
             game.status = 'Starting';
-            ship.bullets = 15;
+            ship.bullets = 18;
             ship.x = 100;
-            intervalRound = setInterval(thefunc, 1000);
+            intervalRound = setInterval(roundFunc, 1000);
             ship.status = 'Alive';
             textResponse.counter = -1;
             
-            
-            secondsRound = 15;
-            newEnemies = 0;
-            round = 0;
+            ship.grumsKilled = 0;
+            game.timeRound = fixTimeRound;
+            game.allowEnemies = 0;
+            game.round = 0;
+            game.totalRounds = 1;
         }
         
     }
