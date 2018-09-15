@@ -10,7 +10,7 @@ function init(){
     var ctx = canvas.getContext("2d");
 
     canvas.width = 1200;
-    canvas.height = 675;
+    canvas.height = 600;
 
     var game = {
         status: 'Starting'
@@ -24,7 +24,7 @@ function init(){
         height: 47,
         counter: 0,
         status: 'Alive',
-        bullets: 20
+        bullets: 15
     }
     
     //OBJECT TO KEEP THE KEYS TO BE PRESSED
@@ -60,6 +60,39 @@ function init(){
 
     
     
+    
+    
+    
+    var intervalRound = setInterval(thefunc, 1000);
+    var secondsRound = 15;
+    var newEnemies = 0;
+    var round = 0;
+
+    
+    
+    
+    function thefunc(){
+        
+        if(round < 6){
+        
+            if(secondsRound > 0){
+                secondsRound--;
+
+            }else{
+                secondsRound = 5;
+                ship.bullets += 15;
+                round++;
+                newEnemies = 1;
+            }
+            
+        }else{
+            round = 0;
+        }
+        
+    }
+    
+    
+    
     /*****************************************
         ALL FUNCTIONS DECLARED UNDERNEATH
     ****************************************/
@@ -80,8 +113,8 @@ function init(){
         enemyImg = new Image();
         enemyImg.src = "enemy.png";
         
-        heartImg = new Image();
-        heartImg.src = "heart.png"
+        bulletImg = new Image();
+        bulletImg.src = "bullet.png"
         
 
         
@@ -156,7 +189,7 @@ function init(){
 
 
         for(var i in specialBullets){
-            ctx.drawImage(heartImg,specialBullets[i].x,specialBullets[i].y);
+            ctx.drawImage(bulletImg,specialBullets[i].x,specialBullets[i].y);
         }
 
         ctx.restore();
@@ -169,9 +202,11 @@ function init(){
         //DRAWING ENEMIS NUMBER
         ctx.save();
         ctx.fillStyle = "White";
-        ctx.font = "Bold 12pt Arial";
-        ctx.fillText("Grums: " + enemies.length, 10, 20);
-        ctx.fillText("Missils: " + ship.bullets, 10, 40);
+        ctx.font = "Bold 10pt Arial";
+        ctx.fillText("Next Round: " + secondsRound, 10, 20);
+        ctx.fillText("Grums: " + enemies.length, 10, 40);
+        ctx.fillText("Missils: " + ship.bullets, 10, 60);
+        
         ctx.restore();
         
         
@@ -261,7 +296,8 @@ function init(){
                 x: ship.x + (ship.width / 2) - 2.5,
                 y: ship.y - 10,
                 width: 5,
-                height: 10
+                height: 10,
+                status: 1
             });
             
             ship.bullets--;
@@ -303,16 +339,17 @@ function init(){
                 y: enemy.y + enemy.height,
                 width: 5,
                 height: 10,
+                status: 1,
                 counter: 0
             }
         }
         
         //WHEN THE GAMES STARTS, CREATES THE ENEMIES
-        if(game.status == 'Starting'){
+        if(game.status == 'Starting' || newEnemies == 1){
             for(var i = 0; i < 10; i++){
                 enemies.push({
                     x: 10 + (i * 50), 
-                    y: 10,
+                    y: 10 + round * 50,
                     width: 55,
                     height: 40,
                     status: 1,
@@ -320,6 +357,7 @@ function init(){
                     counter: 0
                 });  
             }
+            newEnemies = 0;
             game.status = 'Playing';
         }
         
@@ -427,18 +465,23 @@ function init(){
         //Send the every shoot and every enemy to the collision algorithm and make the status 0 if touched
         for(var i in shoots){
             for(var j in enemies){
-                if(collision(shoots[i],enemies[j])){
+                if(collision(shoots[i],enemies[j]) && shoots[i].status == 1){
                     enemySound.play();
                     enemies[j].status = 0;
+                    shoots[i].status = 0;
                                 
                 }
             }
-       }     
+       }   
+        
+        shoots = shoots.filter(function(a){
+            return a.status != 0;
+        });
    
         
         
         for(var i in specialBullets){
-            if(collision(specialBullets[i],ship) && specialBullets[i].status == 1){
+            if(collision(specialBullets[i],ship) && game.status == "Playing" && specialBullets[i].status == 1){
                 specialBullets[i].status = 0;
                 ship.bullets += 1;   
                 lifeSound.play();
@@ -457,13 +500,19 @@ function init(){
             for(var i in enemiesShoots){
                 if(collision(enemiesShoots[i],ship) && game.status == "Playing"){
                     ship.status = 'Hit';
-                    enemiesShoots.splice(enemiesShoots[i], 1);
                     ship.bullets = 0;
+                    enemiesShoots[i].status = 0;
                     gameOver.play(); //Play sound 
                 }
             }
             
+            enemiesShoots = enemiesShoots.filter(function(a){
+                return a.status != 0
+            });
+            
          }
+        
+        
         
     }
     
@@ -477,6 +526,7 @@ function init(){
             textResponse.subtitle = 'Press R to restart';
             textResponse.counter = 0;
             winSound.play();
+            clearInterval(intervalRound);
         }
         
         //IF THE STATUS OF SHIP IS HIT (ONLY ONCE)
@@ -487,6 +537,7 @@ function init(){
             
             if(ship.counter >= 20){
                 ship.counter = 0;
+                clearInterval(intervalRound);
                 ship.status = 'Dead';
                 game.status = 'Lost';
                 textResponse.title = 'Game Over';
@@ -499,11 +550,18 @@ function init(){
         
         //RESTART THE GAME PRESSING R
         if((game.status == 'Lost' || game.status == 'Win') && keys[82]){
+            
             game.status = 'Starting';
-            ship.bullets = 20;
+            ship.bullets = 15;
             ship.x = 100;
+            intervalRound = setInterval(thefunc, 1000);
             ship.status = 'Alive';
             textResponse.counter = -1;
+            
+            
+            secondsRound = 15;
+            newEnemies = 0;
+            round = 0;
         }
         
     }
@@ -595,5 +653,10 @@ function init(){
     //LOAD TO START
     loadMedia();
     addEventKeys();
+    
+    
+
+
+   
 
 }
