@@ -14,13 +14,13 @@ function init(){
 
     var fixTimeRound = 8;
     
+    //CREATES THE OBJECT GAME
     var game = {
         status: 'Starting',
         round: 0,
         allowEnemies: 0,
         timeRound: fixTimeRound,
         totalRounds: 1
-    
     }
     
     //CREATES THE OBJECT SHIP
@@ -42,7 +42,7 @@ function init(){
     var shoots = [];
     var keyBoolShoot = false;
     
-    //ARRAY WITH ENEMIES 
+    //ARRAY WITH ENEMIES AND THEIR DROPS
     var enemies = [];
     var enemiesShoots = [];
     var specialBullets = [];
@@ -50,6 +50,7 @@ function init(){
     //VAR TO KEEP THE BACKGROUND
     var background;
     
+    //CREATES THE OBJECT TEXT
     var textResponse = {
         counter: -1,
         title: '',
@@ -60,45 +61,19 @@ function init(){
     var simpleShoot = new Audio("Audios/simpleShoot.wav");
     var gameOver = new Audio("Audios/gameOver.wav");
     var winSound = new Audio("Audios/win.mp3");
-    winSound.volume = 0.1;
     var enemySound = new Audio("Audios/enemy.mp3");
-    simpleShoot.volume = 0.1;
-    
     var lifeSound = new Audio("Audios/life.wav");
     
+    winSound.volume = 0.1;
+    simpleShoot.volume = 0.1;
     
-    
-    
-
-    
+    //SET THE INTERVAL FOR UPDATING EVERY SECOND
     var intervalRound = setInterval(roundFunc, 1000);
     
-    function roundFunc(){
-        
-        if(game.round < 6){
-        
-            if(game.timeRound > 0){
-                game.timeRound--;
 
-            }else{
-                game.timeRound = fixTimeRound;
-                ship.bullets += 18;
-                game.round++;
-                game.allowEnemies = 1;
-                game.totalRounds += 1;
-            }
-            
-        }else{
-            game.round = 0;
-        }
-        
-    }
-    
-    
-    
-    /*****************************************
-        ALL FUNCTIONS DECLARED UNDERNEATH
-    ****************************************/
+    /**********************************************************************************
+                            ALL FUNCTIONS DECLARED UNDERNEATH
+    *********************************************************************************/
     
     //FUNCTION TO BE CALLED WHEN ALL HAS BEEN LOADED    
     function loadMedia(){
@@ -127,6 +102,28 @@ function init(){
         }
     }
     
+    //FUNCTION CALLED EVERY SECOND TO UPDATE THE ROUND
+    function roundFunc(){
+        
+        //The round reaches 6 then starts again
+        if(game.round < 6){
+        
+            if(game.timeRound > 0){
+                game.timeRound--;
+
+            }else{
+                game.timeRound = fixTimeRound;
+                ship.bullets += 18;
+                game.round++;
+                game.allowEnemies = 1;
+                game.totalRounds += 1;
+            }
+            
+        }else{
+            game.round = 0;
+        }
+        
+    }
     
     
     /*****************************************
@@ -140,26 +137,26 @@ function init(){
     
     //DRAW ENEMIES
     function drawEnemies(){
+        
         for(var i in enemies){
-            
             //If the enemy is alive, draw it
             if(enemies[i].status == 1){
-                
                 ctx.drawImage(enemyImg, enemies[i].x, enemies[i].y);
-                
             }
-            
         }
+        
     }
     
     //DRAW THE ENEMIES BULLETS
-    function drawEnemiesShoots(){    
+    function drawEnemiesShoots(){  
+        
         ctx.save();
         ctx.fillStyle = 'yellow'; 
         for(var i in enemiesShoots){ 
             ctx.fillRect(enemiesShoots[i].x, enemiesShoots[i].y, enemiesShoots[i].width, enemiesShoots[i].height);      
         }
         ctx.restore();
+        
     }
     
     //DRAW THE SPACE SHIP
@@ -171,11 +168,11 @@ function init(){
             ctx.drawImage(spaceShip, ship.x, ship.y);
         }
         
-        
     }
     
     //DRAW BULLETS
     function drawShoots(){
+        
         ctx.save();
         ctx.fillStyle = 'white';
         for(var i in shoots){
@@ -188,13 +185,9 @@ function init(){
     function drawSpecial(){
         
         ctx.save();
-        ctx.fillStyle = 'Red';
-
-
         for(var i in specialBullets){
             ctx.drawImage(bulletImg,specialBullets[i].x,specialBullets[i].y);
         }
-
         ctx.restore();
         
     }
@@ -202,21 +195,21 @@ function init(){
     //DRAW TEXT 
     function drawText(){
         
-        //DRAWING ENEMIS NUMBER
+        //DRAWING TEXT ITEMS IN THE SCREEN
         ctx.save();
         ctx.fillStyle = "White";
-        ctx.font = "Bold 10pt Arial";
+        ctx.font = "Bold 15pt Gamja Flower";
         ctx.fillText("Grums: " + enemies.length, 10, 20);
         ctx.fillText("Missils: " + ship.bullets, 10, 40);
         
         ctx.fillText("Kills: " + ship.grumsKilled, canvas.width - 70, canvas.height - 10);
         ctx.fillText("Rounds: " + game.totalRounds, canvas.width - 160, canvas.height - 10);
         
-        ctx.font = "Bold 50pt Arial";
+        ctx.font = "Bold 60pt Gamja Flower";
         ctx.fillText(game.timeRound, canvas.width - 40, 53);
         ctx.restore();
         
-        
+        //TEXT FOR THE END OF THE GAME
         //IF the counter hasn't changed, leave the functions
         if(textResponse.counter == -1){
             return false;
@@ -243,14 +236,13 @@ function init(){
         ctx.fillStyle = 'white';
         ctx.globalAlpha = alpha; //Alpha changes shown on top
         
-        ctx.font = 'Bold 40pt Arial';
+        ctx.font = 'Bold 50pt Gamja Flower';
         ctx.fillText(textResponse.title,140,200);
-        ctx.font = '14pt Arial';
-        ctx.fillText(textResponse.subtitle,190,250);        
+        ctx.font = '25pt Gamja Flower';
+        ctx.fillText(textResponse.subtitle,150,240);        
         ctx.restore();
         
     }
-    
     
     
     /*****************************************
@@ -296,7 +288,6 @@ function init(){
     
     //SEND OUR BULLETS
     function fire(){
-        
         if(ship.bullets > 0){
         
             shoots.push({
@@ -309,47 +300,18 @@ function init(){
             
             ship.bullets--;
             simpleShoot.play(); //Sound of shooting
-            
-        
+
         }
     }
-    
     
     
     /*****************************************
                 AUTO FUNCTIONS
     ****************************************/
-        
-    //MOVE OUR SHOOTS
-    function moveShoots(){
-        
-        //Actual movement
-        for(var i in shoots){
-            var shoot = shoots[i];
-            shoots[i].y -= 10;
-        }
-        
-        shoots = shoots.filter(function(shoot){
-            return shoot.y > 0;
-        });
-        
-    }
     
     //CREATES ENEMIES, MOVE THEM AND ADD SHOOTS
     function updateEnemies(){
-        
-        //PUSH AND ENEMY - CHECK BELOW TO KNOW IT PUSHES A BULLET NOT SO OFTEN
-        function addEnemyShoot(enemy){
-            return {
-                x: enemy.x + (enemy.width / 2) + 2.5,
-                y: enemy.y + enemy.height,
-                width: 5,
-                height: 10,
-                status: 1,
-                counter: 0
-            }
-        }
-        
+                
         //WHEN THE GAMES STARTS, CREATES THE ENEMIES
         if(game.status == 'Starting' || game.allowEnemies == 1){
             for(var i = 0; i < 10; i++){
@@ -367,6 +329,28 @@ function init(){
             game.status = 'Playing';
         }
         
+        //PUSH AN ENEMY SHOOT
+        function addEnemyShoot(enemy){
+            return {
+                x: enemy.x + (enemy.width / 2) + 2.5,
+                y: enemy.y + enemy.height,
+                width: 5,
+                height: 10,
+                status: 1,
+                counter: 0
+            }
+        }
+        
+        //PUSH SPECIAL SHOOT TO ARRAY
+        function addSpecialShoot(enemy){
+            return {
+                x: enemy.x + (enemy.width / 2) - 10,
+                y: enemy.y + enemy.height,
+                width: 25,
+                height: 25,
+                status: 1
+            }
+        }
         
         //MOVEMENT OF THE ENEMIES
         for(var i in enemies){
@@ -393,12 +377,11 @@ function init(){
                 enemies[i].x += enemies[i].speed;
                 
                 //Call the random function, if returns 4 then push a bullet the enemiesShoots
-                if(random(0,enemies.length * 6) == 4){
+                if(random(0,enemies.length * 5) == 4){
                     enemiesShoots.push(addEnemyShoot(enemies[i]));
                 }
                 
-                
-                if(random(0, 30000 / enemies.length ) == 1){
+                if(random(0, enemies.length * 100) == 1){
                     specialBullets.push(addSpecialShoot(enemies[i]));
                 }
                 
@@ -416,6 +399,21 @@ function init(){
                 
     }
     
+    //MOVE OUR SHOOTS
+    function moveShoots(){
+        
+        //Actual movement
+        for(var i in shoots){
+            var shoot = shoots[i];
+            shoots[i].y -= 10;
+        }
+        
+        shoots = shoots.filter(function(shoot){
+            return shoot.y > 0;
+        });
+        
+    }
+    
     //MOVE THE ENEMIES BULLETS
     function moveEnemiesShoots(){
         
@@ -428,19 +426,6 @@ function init(){
         enemiesShoots = enemiesShoots.filter(function(singleShoot){
             return singleShoot.y < canvas.height;
         });
-    }
-    
-    //ADD SPECIAL SHOOT TO ARRAY
-    function addSpecialShoot(enemy){
-        
-        return {
-            x: enemy.x + (enemy.width / 2) - 10,
-            y: enemy.y + enemy.height,
-            width: 25,
-            height: 25,
-            status: 1
-        }
-        
     }
     
     //MOVE SPECIAL SHOOT
@@ -457,7 +442,6 @@ function init(){
     }
 
     
-    
     /*****************************************
               RECURSIVE FUNCTIONS
     ****************************************/
@@ -465,7 +449,7 @@ function init(){
     //CHECK ALL COLLISIONS 
     function checkCollision(){
         
-        //Send the every shoot and every enemy to the collision algorithm and make the status 0 if touched
+        //COLLISION MY SHOOTS 
         for(var i in shoots){
             for(var j in enemies){
                 if(collision(shoots[i],enemies[j]) && shoots[i].status == 1){
@@ -476,31 +460,31 @@ function init(){
                                 
                 }
             }
-       }   
+        }   
         
         shoots = shoots.filter(function(a){
             return a.status != 0;
         });
    
-        
-        
-        for(var i in specialBullets){
-            if(collision(specialBullets[i],ship) && game.status == "Playing" && specialBullets[i].status == 1){
-                specialBullets[i].status = 0;
-                ship.bullets += 3;   
-                lifeSound.play();
-                
-            }
-        }
-        
-        specialBullets = specialBullets.filter(function(a){
-            return a.status != 0;
-        });
-        
         //IF THE SHIP IS ALIVE THEN WAIT FOR THE COLLISION
         if(ship.status == 'Alive'){
+            
+            //COLLISION SPECIAL BULLETS
+            for(var i in specialBullets){
+                if(collision(specialBullets[i],ship) && game.status == "Playing" && specialBullets[i].status == 1){
+                    specialBullets[i].status = 0;
+                    ship.bullets += 3;   
+                    lifeSound.play();
+
+                }
+            }
+
+            specialBullets = specialBullets.filter(function(a){
+                return a.status != 0;
+            });
+            
            
-            //Check all bullets and wait for collision
+            //COLLISION ENEMY'S BULLETS
             for(var i in enemiesShoots){
                 if(collision(enemiesShoots[i],ship) && game.status == "Playing"){
                     ship.status = 'Hit';
@@ -511,12 +495,10 @@ function init(){
             }
             
             enemiesShoots = enemiesShoots.filter(function(a){
-                return a.status != 0
+                return a.status != 0;
             });
             
-         }
-        
-        
+         }  
         
     }
     
@@ -530,47 +512,49 @@ function init(){
             textResponse.subtitle = 'Press R to restart';
             textResponse.counter = 0;
             winSound.play();
+            
             clearInterval(intervalRound);
         }
         
         //IF THE STATUS OF SHIP IS HIT (ONLY ONCE)
         if(ship.status == 'Hit'){
-            
             //The ship.counter delays a bit to achieve a better effect
             ship.counter++;
             
             if(ship.counter >= 20){
+                
                 ship.counter = 0;
-                clearInterval(intervalRound);
                 ship.status = 'Dead';
                 game.status = 'Lost';
+                
                 textResponse.title = 'Game Over';
                 textResponse.subtitle = 'Press R to continue';
-                
-                //For effect using ALPHA (Go top) in the TEXT
                 textResponse.counter = 0;
+                
+                clearInterval(intervalRound);
             }
         }
         
         //RESTART THE GAME PRESSING R
         if((game.status == 'Lost' || game.status == 'Win') && keys[82]){
             
-            game.status = 'Starting';
-            ship.bullets = 18;
             ship.x = 100;
-            intervalRound = setInterval(roundFunc, 1000);
+            ship.bullets = 18;
             ship.status = 'Alive';
+            ship.grumsKilled = 0;
+            
             textResponse.counter = -1;
             
-            ship.grumsKilled = 0;
+            game.status = 'Starting';
             game.timeRound = fixTimeRound;
             game.allowEnemies = 0;
             game.round = 0;
             game.totalRounds = 1;
+            
+            intervalRound = setInterval(roundFunc, 1000);
         }
         
     }
-    
     
     
     /*****************************************
@@ -578,7 +562,7 @@ function init(){
     ****************************************/
     
     //RANDOM RETURNS AN INTEGER
-    function random(low,high){
+    function random(low, high){
         var positibilites = high - low;
         var a = Math.random() * positibilites;
         
@@ -637,7 +621,6 @@ function init(){
         updateEnemies();
         moveEnemiesShoots();
         moveSpecialShoot();
-        
         moveShoots();
         checkCollision();
         
@@ -647,21 +630,16 @@ function init(){
         //Drawing items
         drawBackground();
         drawEnemies();
-        drawEnemiesShoots();
-        drawSpaceShip();
-        drawShoots();
         drawSpecial();
+        drawEnemiesShoots();
+        drawShoots();
         drawText();
+        drawSpaceShip();
         
     }
     
     //LOAD TO START
     loadMedia();
     addEventKeys();
-    
-    
-
-
-   
 
 }
