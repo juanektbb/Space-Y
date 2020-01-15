@@ -58,11 +58,11 @@ function init(){
     }
     
     //AUDIOS NEED TO BE DECLARED ONLY ONCE HERE
-    var simpleShoot = new Audio("Audios/simpleShoot.wav");
-    var gameOver = new Audio("Audios/gameOver.wav");
-    var winSound = new Audio("Audios/win.mp3");
-    var enemySound = new Audio("Audios/enemy.mp3");
-    var lifeSound = new Audio("Audios/life.wav");
+    var simpleShoot = new Audio("./audios/simpleShoot.wav");
+    var gameOver = new Audio("./audios/gameOver.wav");
+    var winSound = new Audio("./audios/win.mp3");
+    var enemySound = new Audio("./audios/enemy.mp3");
+    var lifeSound = new Audio("./audios/life.wav");
     
     winSound.volume = 0.1;
     simpleShoot.volume = 0.1;
@@ -77,28 +77,24 @@ function init(){
     
     //FUNCTION TO BE CALLED WHEN ALL HAS BEEN LOADED    
     function loadMedia(){
-        
-        //IMAGES
         background = new Image(); 
-        background.src = "bg.jpg";
+        background.src = "./images/canvas-bg.jpg";
         
         spaceShip = new Image();
-        spaceShip.src = "ship.png";
+        spaceShip.src = "./images/ship.png";
         
         spaceShipDead = new Image();
-        spaceShipDead.src = "ship_dead.png";
+        spaceShipDead.src = "./images/ship-dead.png";
         
         enemyImg = new Image();
-        enemyImg.src = "enemy.png";
+        enemyImg.src = "./images/enemy.png";
         
         bulletImg = new Image();
-        bulletImg.src = "bullet.png"
-        
+        bulletImg.src = "./images/bullet.png"
         
         //When the background has been loaded, the frameLoop is going to called every x time
         background.onload = function(){ 
             var interval = window.setInterval(frameLoop, 1000/55);
-            
         }
     }
     
@@ -252,8 +248,8 @@ function init(){
     //PRESSED KEYS
     function pressedKeys(){
         
-        //IF THE KEY 65 IS TRUE (PRESSED) LEFT
-        if(keys[65]){
+        //IF THE KEY 37 IS TRUE (PRESSED) LEFT
+        if(keys[37]){
             ship.x -= 5;
             //Find the limit of movement
             if(ship.x < 10){
@@ -261,8 +257,8 @@ function init(){
             }
         }
         
-        //IF THE KEY 68 IS TRUE (PRESSED) RIGHT
-        if(keys[68]){
+        //IF THE KEY 39 IS TRUE (PRESSED) RIGHT
+        if(keys[39]){
             ship.x += 5;
             //Find the limit of movement
             var limit =  canvas.width - ship.width - 10;
@@ -271,8 +267,8 @@ function init(){
             }
         }
         
-        //IF THE KEY 38 IS TRUE (PRESSED) SHOOT
-        if(keys[38]){
+        //IF THE KEY 32 IS TRUE (PRESSED) SHOOT
+        if(keys[32]){
             //The boolean must be FALSE 
             if(!keyBoolShoot){
                 fire();
@@ -354,6 +350,7 @@ function init(){
         
         //MOVEMENT OF THE ENEMIES
         for(var i in enemies){
+
             //If the enemy is false, jump to next iteration
             if(!enemies[i]){
                 continue;
